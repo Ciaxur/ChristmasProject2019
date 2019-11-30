@@ -10,5 +10,7 @@ GTK_SANDBOX_INCLUDES = $(GTK_SANDBOX_DIR)/ContextArea.cc -I./$(GTK_SANDBOX_DIR)
 build:
 	$(CC) $(SRC_DIR)/$(FILES) $(GTK_SANDBOX_INCLUDES) -o $(OUT) $(FLAGS) 
 
-setup-git:
-	git submodule update --remote 
+init-git-submodules:
+	git submodule init 
+	git submodule foreach --recursive 'git reset --hard'
+	git submodule sync
