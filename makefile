@@ -11,6 +11,6 @@ build:
 	$(CC) $(SRC_DIR)/$(FILES) $(GTK_SANDBOX_INCLUDES) -o $(OUT) $(FLAGS) 
 
 init-git-submodules:
-	git submodule init 
-	git submodule foreach --recursive 'git reset --hard'
+	git submodule init
 	git submodule sync
+	git submodule update --recursive
