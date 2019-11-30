@@ -22,7 +22,8 @@
         "/usr/include/freetype2",
         "/lib/gtkmm-3.0/include",
         "/usr/include/atkmm-1.6",
-        "/usr/include/atk-1.0"
+        "/usr/include/atk-1.0",
+        "${workspaceFolder}/src/include/gtk-sandbox/src/"
     ],
     "files.associations": {
         "array": "cpp",
