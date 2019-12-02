@@ -1,5 +1,5 @@
 CC = g++
-FLAGS = `pkg-config gtkmm-3.0 --cflags --libs`
+FLAGS = `pkg-config gtkmm-3.0 --cflags --libs` --std=c++17
 SRC_DIR = src
 FILES = *.cc
 OUT = app
