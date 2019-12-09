@@ -11,7 +11,26 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+/**
+ * Simple Rain Drop Strcuture
+ * 
+ * - pos - Current Position (Vector2D)
+ * - startPos - Starting Position for Resetting(Vector2D)
+ * - yDeadZone - y-position to Reset when Hit
+ * - vel - Velocity of Rain Drop
+ * - width - Width of Rain Drop (Rectangle)
+ * - height - Height of Rain Drop (Rectangle)
+ */
+struct RainDrop {
+    Vector2D    pos,            // Current Position of Rain Drop
+                startPos;       // Starting Position of Rain Drop
 
+    int         yDeadZone;      // Y Offset from Starting Position where Death occurs
+
+    float       vel,            // Velocity at which to increment Displacement
+                width,          // Width of Rain Drop
+                height;         // Height of Rain Drop
+};
 
 
 class ChristmasApp: public ContextArea {
@@ -42,8 +61,9 @@ class ChristmasApp: public ContextArea {
     private:    // Variables Used
         GDK_IMAGE   tiredFace_img, z1_img, z3_img;
         GDK_IMAGE   happyFace_img, sunFace_img, sunRims_img;
+        GDK_IMAGE   sadFace_img, tear_img;
         Stars       stars;                              // Initiated in ChristmasApp Contructor
-        
+        std::vector<RainDrop> rain;
 
     private:    // DRAWING FUNCTIONS
         void setup() {
@@ -53,6 +73,12 @@ class ChristmasApp: public ContextArea {
             z1_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sleep-Emoji/128/Z1.png" );
             z3_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sleep-Emoji/64/Z3.png" );
 
+            happyFace_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Happy_Emoji/128/Smile_Face.png" );
+            sunFace_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sun-Emoji/128/Sun-Face.png" );
+            sunRims_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sun-Emoji/128/Sun-Rims.png" );
+
+            sadFace_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sad-Emoji/128/Sad.png" );
+            tear_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sad-Emoji/128/Tear.png" );
             #else
             tiredFace_img = createImageBuffer( "resources/Sleep-Emoji/64/FaceOnly.png" );
             z1_img = createImageBuffer( "resources/Sleep-Emoji/128/Z1.png" );
@@ -61,9 +87,21 @@ class ChristmasApp: public ContextArea {
             happyFace_img = createImageBuffer( "resources/Happy_Emoji/128/Smile_Face.png" );
             sunFace_img = createImageBuffer( "resources/Sun-Emoji/128/Sun-Face.png" );
             sunRims_img = createImageBuffer( "resources/Sun-Emoji/128/Sun-Rims.png" );
-            
 
+            sadFace_img = createImageBuffer( "resources/Sad-Emoji/128/Sad.png" );
+            tear_img = createImageBuffer( "resources/Sad-Emoji/128/Tear.png" );
             #endif
+
+
+            // CONSTRUCT RAIN DROP DATA
+            float hs[] = { 13.4f, 17.0f, 15.0f, 14.0f, 17.0f, 13.0f, 19.0f, 12.0f };
+            float vs[] = { 6.0f, 5.0, 4.0f, 4.0f, 5.0f, 6.0f, 7.0f, 5.0f };
+            for(int i=0; i<8; i++) {
+                rain.push_back(
+                    { {9*i, 0}, {9*i, 0}, 50, vs[i], 2.0f, hs[i] }
+                );
+            }
+
             
             // IMAGE MODIFICATION
             z1_img = resizeImage(z1_img, 64, 64);
@@ -259,25 +297,128 @@ class ChristmasApp: public ContextArea {
         }
         
 
-        // NOTE: Currently Working ON
         /**
          * SAD STATE
+         *  - Tearing Sad Face
+         *  - Rainy Clouds
          */
+        float tearSize = 0.01;          // Tear Size
+        float tearAcc = 0.50;           // Tear Acceleration
+        float tearVel = 0.0f;           // Tear Velocity
+        float tearDisp = 0.0f;          // Tear Displacement
+        float cloudTheta = 0.00;        // Cloud Theta change for Sin/Cos
         void drawSadState(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
             // DRAW BACKGROUND
             ctx->set_source_rgb(0.204, 0.250, 0.2588);
             ctx->rectangle(0, 0, WIDTH, HEIGHT);
             ctx->fill();
 
+            // SAD STATE
+            ctx->save();
+            ctx->set_source_rgb(1.0, 1.0, 1.0);
+            ctx->select_font_face("Monospace", Cairo::FontSlant::FONT_SLANT_NORMAL, Cairo::FontWeight::FONT_WEIGHT_NORMAL);
+            ctx->set_font_size(50.0);
+            ctx->translate((WIDTH/2) - 50, HEIGHT/2);
+            ctx->show_text("SAD");
+            ctx->restore();
 
+
+            // DRAW FACE & TEAR
+            ctx->save();
+            ctx->translate(WIDTH/2 + 50, 120);
+            drawImage(ctx, sadFace_img); 
+
+            // animate tear dropping
+            ctx->translate(100 - (tearSize * 30), 75 + tearDisp);
+            ctx->scale(tearSize, tearSize);
+            drawImage(ctx, tear_img);
+            ctx->restore();
+
+
+            cloudTheta += 0.05f;
+            float sinDelta = sin(cloudTheta);
+            float cosDelta = cos(cloudTheta);
+            if(cloudTheta >= 2*M_PI) cloudTheta = 0.0f;
+
+            // Cloudy Cloud
+            ctx->save();
+            ctx->set_source_rgba(0.550, 0.550, 0.550, 1.0);
+            ctx->translate(WIDTH - 210, 55);
+            ctx->rotate(0.15);
+            ctx->scale(1.5, 1.5);
+            ctx->arc(  4 * sinDelta,          2   * cosDelta,       20, 0, 2*M_PI);
+            ctx->arc(  20 + (4 * sinDelta),   1.5 * cosDelta,       25, 0, 2*M_PI);
+            ctx->fill();
+            ctx->arc(  40 - (2 * cosDelta),  -15,                   25, 0, 2*M_PI);
+            ctx->arc(  40 + (2 * cosDelta),   10,                   15, 0, 2*M_PI);
+            ctx->fill();
+            ctx->arc(  55 + cosDelta,         10,                   15, 0, 2*M_PI);
+            ctx->arc(  60 - (3 * cosDelta),   5 + (sinDelta),       20, 0, 2*M_PI);
+            ctx->fill();
+
+
+            // Adjust Rain Properties
+            ctx->set_source_rgb(0.165, 0.556, 0.623);
+            ctx->rotate(0.15);
+
+            // Draw & Update RainDrops
+            for(RainDrop &r : rain) {
+                ctx->rectangle(r.pos.x, r.pos.y, r.width, r.height);
+                r.pos.y += r.vel;
+                ctx->fill();
+
+                // Reset
+                if(r.pos.y >= r.yDeadZone) {
+                    r.pos.x = r.startPos.x;
+                    r.pos.y = r.startPos.y;
+                }
+            }
+            ctx->restore();
+
+
+
+            // Tear Drop Speed MATHS
+            if(tearSize <= .35) tearSize += 0.005;
+            else {
+                // Calculate Velocity & Displacement
+                tearDisp += tearVel;
+                tearVel += tearAcc;
+
+                // Reset
+                if(tearDisp > 2 * HEIGHT) {
+                    tearDisp = tearVel = 0.0f;
+                    tearSize = 0.01;
+                }
+            }
         }
 
         
-
+        // TODO: Work on Overlay Switch Control
+        int stateIndex = 0;
         void draw(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
-            // drawTiredState(ctx, WIDTH, HEIGHT);
-            // drawHappyState(ctx, WIDTH, HEIGHT);
-            drawSadState(ctx, WIDTH, HEIGHT);
+            // DEBUG: Switch States every 360 Frames
+            if(!(frameCount % 360)) {
+                stateIndex = (stateIndex + 1) % 3;
+            }
+            
+            // PICK CORRESPONDING STATE INDEX
+            switch (stateIndex)
+            {
+            case 0:
+                drawTiredState(ctx, WIDTH, HEIGHT);
+                break;
+            case 1:
+                drawSadState(ctx, WIDTH, HEIGHT);
+                break;
+
+            case 2:
+                drawHappyState(ctx, WIDTH, HEIGHT);
+                break;
+            
+            default:
+                std::cout << "Something Went Wrong! State: " << stateIndex << '\n';
+                break;
+            }
         }
 };
 
