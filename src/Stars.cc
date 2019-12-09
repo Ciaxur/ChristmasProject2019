@@ -28,6 +28,7 @@ Stars::Stars(int totalStars, int r, int frameFadeGap, int starMaxLife): color(24
     // Setup Star Properties
     stars.resize(totalStars);
     starRadius = r;
+    starLifeFrame = 0;
     FRAMES_TILL_FADE = frameFadeGap;
     STAR_MAX_LIFE_FRAME = starMaxLife;
 }
@@ -71,6 +72,7 @@ void Stars::update(int WIDTH, int HEIGHT) {
         genRandomLocations(size, stars, 0, WIDTH, 0, HEIGHT);
         starLifeFrame = STAR_MAX_LIFE_FRAME;        // Reset Life Frame
     }
+
 
 
     // CALCULATE ALPHA
