@@ -34,5 +34,5 @@ class Stars {
         void setRadius(int);                            // Sets Star Radius
         void setFrameFadeGap(int);                      // Sets Frame Till Fade
         void setMaxLifeFrame(int);                      // Sets Max Life Frame
-        void setColor(RGBA&);                           // Sets the Stars' Color
+        void setColor(RGBA);                            // Sets the Stars' Color
 };

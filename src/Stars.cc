@@ -100,7 +100,7 @@ void Stars::update(int WIDTH, int HEIGHT) {
  */
 void Stars::draw(const CTX_REF& ctx, int WIDTH, int HEIGHT) {
     // DRAW STARS!
-    ctx->set_source_rgba(0.94, 0.94, 0.94, (color.a / 255.0));
+    ctx->set_source_rgba((color.r / 255.0), (color.g / 255.0), (color.b / 255.0), (color.a / 255.0));
     for(const Vector2D &p : stars) {
         ctx->arc(p.x, p.y, starRadius, 0, 2*M_PI);
         ctx->fill();
@@ -144,7 +144,7 @@ void Stars::setMaxLifeFrame(int maxLife) {
  * 
  * @param _color - Reference to RGBA Struct
  */
-void Stars::setColor(RGBA& _color) {
+void Stars::setColor(RGBA _color) {
     color.r = _color.r;
     color.g = _color.g;
     color.b = _color.b;

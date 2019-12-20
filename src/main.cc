@@ -35,7 +35,7 @@ struct RainDrop {
 
 class ChristmasApp: public ContextArea {
     public:
-        ChristmasApp(): stars(150, 2, 40, 100) {
+        ChristmasApp(): stars(90, 2, 40, 100) {
             std::cout << "Christmas 2019 Constructed!!\n";
             initContextArea(TARGET_FPS::THIRTY);
         }
@@ -62,35 +62,37 @@ class ChristmasApp: public ContextArea {
         GDK_IMAGE   tiredFace_img, z1_img, z3_img;
         GDK_IMAGE   happyFace_img, sunFace_img, sunRims_img;
         GDK_IMAGE   sadFace_img, tear_img;
-        Stars       stars;                              // Initiated in ChristmasApp Contructor
+        GDK_IMAGE   santaHat_img, 
+                    santaHat2_img, 
+                    santa_img,
+                    merryXMas_img;
+        Stars       stars;                          // Initiated in ChristmasApp Constructor
+        std::vector<Stars>    christmasLights;     // Christmas Lights
         std::vector<RainDrop> rain;
 
     private:    // DRAWING FUNCTIONS
         void setup() {
             // SETUP IMAGES
+            std::string rootPath = "";
             #ifdef __arm__      // Different Path for my Raspberry PI
-            tiredFace_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sleep-Emoji/64/FaceOnly.png" );
-            z1_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sleep-Emoji/128/Z1.png" );
-            z3_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sleep-Emoji/64/Z3.png" );
-
-            happyFace_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Happy_Emoji/128/Smile_Face.png" );
-            sunFace_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sun-Emoji/128/Sun-Face.png" );
-            sunRims_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sun-Emoji/128/Sun-Rims.png" );
-
-            sadFace_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sad-Emoji/128/Sad.png" );
-            tear_img = createImageBuffer( "/home/pi/Downloads/ChristmasProject2019/resources/Sad-Emoji/128/Tear.png" );
-            #else
-            tiredFace_img = createImageBuffer( "resources/Sleep-Emoji/64/FaceOnly.png" );
-            z1_img = createImageBuffer( "resources/Sleep-Emoji/128/Z1.png" );
-            z3_img = createImageBuffer( "resources/Sleep-Emoji/64/Z3.png" );
-
-            happyFace_img = createImageBuffer( "resources/Happy_Emoji/128/Smile_Face.png" );
-            sunFace_img = createImageBuffer( "resources/Sun-Emoji/128/Sun-Face.png" );
-            sunRims_img = createImageBuffer( "resources/Sun-Emoji/128/Sun-Rims.png" );
-
-            sadFace_img = createImageBuffer( "resources/Sad-Emoji/128/Sad.png" );
-            tear_img = createImageBuffer( "resources/Sad-Emoji/128/Tear.png" );
+                rootPath = "/home/pi/Downloads/ChristmasProject2019/";
             #endif
+
+            tiredFace_img   = createImageBuffer( rootPath + "resources/Sleep-Emoji/64/FaceOnly.png" );
+            z1_img          = createImageBuffer( rootPath + "resources/Sleep-Emoji/128/Z1.png" );
+            z3_img          = createImageBuffer( rootPath + "resources/Sleep-Emoji/64/Z3.png" );
+
+            happyFace_img   = createImageBuffer( rootPath + "resources/Happy_Emoji/128/Smile_Face.png" );
+            sunFace_img     = createImageBuffer( rootPath + "resources/Sun-Emoji/128/Sun-Face.png" );
+            sunRims_img     = createImageBuffer( rootPath + "resources/Sun-Emoji/128/Sun-Rims.png" );
+
+            sadFace_img     = createImageBuffer( rootPath + "resources/Sad-Emoji/128/Sad.png" );
+            tear_img        = createImageBuffer( rootPath + "resources/Sad-Emoji/128/Tear.png" );
+
+            santaHat_img    = createImageBuffer( rootPath + "resources/Christmas/64/santa-hat.png" );
+            santaHat2_img   = createImageBuffer( rootPath + "resources/Christmas/128/santa-hat2.png" );
+            santa_img       = createImageBuffer( rootPath + "resources/Christmas/64/santa.png" );
+            merryXMas_img   = createImageBuffer( rootPath + "resources/Christmas/256/Merry-Christmas.png" );
 
 
             // CONSTRUCT RAIN DROP DATA
@@ -105,6 +107,18 @@ class ChristmasApp: public ContextArea {
             
             // IMAGE MODIFICATION
             z1_img = resizeImage(z1_img, 64, 64);
+
+            // Christmas Setup
+            christmasLights = {
+                {20, 2, 40, 100},
+                {20, 2, 40, 100},
+                {20, 2, 40, 100},
+                {20, 2, 40, 100}
+            };
+            christmasLights[0].setColor({179,    0,      12});
+            christmasLights[1].setColor({255,    0,      18});
+            christmasLights[2].setColor({0,      255,    62});
+            christmasLights[3].setColor({0,      179,    44});
         }
 
 
@@ -124,7 +138,13 @@ class ChristmasApp: public ContextArea {
             // DRAW STARS
             stars.update(WIDTH, HEIGHT);
             stars.draw(ctx, WIDTH, HEIGHT);
-            
+
+            // DRAW CHRISTMAS LIGHTS
+            for(Stars &light : christmasLights) {
+                light.update(WIDTH, HEIGHT);
+                light.draw(ctx, WIDTH, HEIGHT);
+            }
+
 
             // TIRED STATE
             ctx->save();
@@ -133,13 +153,21 @@ class ChristmasApp: public ContextArea {
             ctx->set_font_size(50.0);
             ctx->translate((WIDTH/2) - 80, HEIGHT/2);
             ctx->show_text("TIRED");
+
+            // DRAW SANTA!
+            ctx->translate(-15, -90);
+            drawImage(ctx, santa_img);
             ctx->restore();
+
 
             // DRAW TIRED FACE
             ctx->save();
             
             ctx->translate((WIDTH/2) + 80, (HEIGHT/2) + 20);
             drawImage(ctx, tiredFace_img);
+
+            ctx->translate(-25, -25);
+            drawImage(ctx, santaHat_img);
 
 
             // Move the Z's Up and Down
@@ -182,6 +210,13 @@ class ChristmasApp: public ContextArea {
             double sinCosScale = sinScale * cosScale;
 
             ctx->save();
+
+
+            // CHRISTMAS THEME!
+            ctx->save();
+            ctx->translate(50, HEIGHT - 150);
+            drawImage(ctx, merryXMas_img);
+            ctx->restore();
 
 
             // DRAW CLOUDS
@@ -260,6 +295,10 @@ class ChristmasApp: public ContextArea {
             ctx->scale(0.5, 0.5);
             ctx->rotate(-M_PI / 6);
             drawImage(ctx, happyFace_img);
+
+            // DRAW CHRISTMAS HAT!
+            ctx->translate(0, -85);
+            drawImage(ctx, santaHat2_img);
             ctx->restore();
 
 
@@ -393,9 +432,14 @@ class ChristmasApp: public ContextArea {
         }
 
         
-        // TODO: Work on Overlay Switch Control
         int stateIndex = 0;
         void draw(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
+            // TODO: Work on Overlay Switch Control
+
+            
+            
+            
+            
             // DEBUG: Switch States every 360 Frames
             if(!(frameCount % 360)) {
                 stateIndex = (stateIndex + 1) % 3;
