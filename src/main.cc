@@ -1,4 +1,9 @@
 #include <iostream>
+#include <thread>
+
+#ifdef __arm__      // GPIO Wiring on Raspberry PI (Mouse Click else)
+#include <wiringPi.h>
+#endif
 
 // VISUAL OBJECTS
 #include "include/Stars.h"
@@ -10,6 +15,11 @@
 // MATHS
 #define _USE_MATH_DEFINES
 #include <math.h>
+
+
+// GLOBAL VARIABLE
+int stateIndex = 0; // Handled by Mouse Click OR Button on RaspberryPI
+
 
 /**
  * Simple Rain Drop Strcuture
@@ -41,7 +51,7 @@ class ChristmasApp: public ContextArea {
         }
     
 
-    private:    // KEYBOARD EVENTS
+    private:    // KEYBOARD / MOUSE EVENTS
         bool onKeyPress(GdkEventKey* event) {
             if(event->keyval == GDK_KEY_q) {        // Quit on Key Press 'Q'
                 std::cout << "Quitting out of Application!" << std::endl;
@@ -54,6 +64,12 @@ class ChristmasApp: public ContextArea {
 
         bool onKeyRelease(GdkEventKey* event) {     // Similair to KeyPress
             // Return True to keep Running
+            return true;
+        }
+
+        // FLIP THROUGHT STATE ON MOUSE CLICK!
+        bool onMousePress(GdkEventButton *event) {
+            stateIndex = (stateIndex + 1) % 3;
             return true;
         }
 
@@ -432,19 +448,7 @@ class ChristmasApp: public ContextArea {
         }
 
         
-        int stateIndex = 0;
         void draw(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
-            // TODO: Work on Overlay Switch Control
-
-            
-            
-            
-            
-            // DEBUG: Switch States every 360 Frames
-            if(!(frameCount % 360)) {
-                stateIndex = (stateIndex + 1) % 3;
-            }
-            
             // PICK CORRESPONDING STATE INDEX
             switch (stateIndex)
             {
@@ -467,12 +471,49 @@ class ChristmasApp: public ContextArea {
 };
 
 
+/**
+ * Thread that listens to GPIO 0 pin for Press
+ *  that will change the State of Mood :)
+ */
+#ifdef __arm__
+void watchButton() {
+    const int PIN = 0;      // GPIO 0
+    bool clicked = false;   // To Simulate Press and Release
+
+    // Setup WiringPI Library
+    wiringPiSetup();
+    pinMode(PIN, INPUT);
+
+    while(true) {
+        int val = digitalRead(PIN);
+
+        if(!clicked && val) {
+            clicked = true;
+
+            // NOTE: Do stuff cause Clicked!
+            stateIndex = (stateIndex + 1) % 3;
+        }
+
+        else if(clicked && !val) {
+            clicked = false;
+        }
+
+        delay(100);
+    }
+}
+#endif
+
 
 int main(int argc, char *argv[]) {
     // START WINDOW + APP
     auto application = Gtk::Application::create(argc, argv, "org.gtkmm.sandbox.base");
     ChristmasApp app;
     MyWindow window(app);           // 640x480 Default Size Window
+
+    // Watch Button Click in Thread
+    #ifdef __arm__
+    std::thread t1(watchButton);
+    #endif
 
     // Run the Application
     return application->run(window);

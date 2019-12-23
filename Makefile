@@ -20,7 +20,10 @@ OBJ_INC = $(patsubst %,../$(SRC_DIR)/%,$(OBJ_FILES))
 
 
 build:
-	$(CC) $(SRC_FILES) ./lib/*.o $(GTK_SANDBOX_INCLUDES) -o $(OUT) $(FLAGS) 
+	$(CC) $(SRC_FILES) ./lib/*.o $(GTK_SANDBOX_INCLUDES) -o $(OUT) $(FLAGS)
+
+build-pi:
+	$(CC) $(SRC_FILES) ./lib/*.o $(GTK_SANDBOX_INCLUDES) -o $(OUT) $(FLAGS) -lwiringPi -lpthread
 
 build-all:
 	make gen-objectFiles
