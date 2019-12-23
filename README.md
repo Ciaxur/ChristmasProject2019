@@ -8,4 +8,8 @@ Setting up this project, you will need to clone it then initiate the Sub-Modules
 ``` sh
 git clone https://github.com/Ciaxur/GTK-Canvas-Sandbox      # Clones Repository
 make init-git-submodules                                    # Initiates Submodules
+make build-all                                              # Generates Object Files and Builds Project
+
+# Building after new changes use,
+make build
 ```
