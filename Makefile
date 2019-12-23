@@ -37,6 +37,10 @@ clean:
 	rm app $(OBJ_DIR)/*.o
 
 init-git-submodules:
+	# Initiate Submodules
 	git submodule init
 	git submodule sync
 	git submodule update --recursive
+
+	# Generate Object files for GTK-Sandbox
+	cd $(GTK_SANDBOX_DIR) && make generate-SharedLibraries
