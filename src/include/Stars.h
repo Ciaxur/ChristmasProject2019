@@ -20,7 +20,10 @@ class Stars {
 
     public:     // Creation/Generation
         Stars();                                        // Sets up Default Data
-        Stars(int, int, int, int);                      // Sets up All Animation Settings
+        Stars(  int totalStars, 
+                int r, 
+                int frameFadeGap, 
+                int starMaxLife);                      // Sets up All Animation Settings
 
         /**
          * Generates Random Locations for Stars

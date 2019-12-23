@@ -45,7 +45,7 @@ struct RainDrop {
 
 class ChristmasApp: public ContextArea {
     public:
-        ChristmasApp(): stars(90, 2, 40, 100) {
+        ChristmasApp(): stars(90, 2, 40, 100), groot_sparkles(5, 1, 18, 40) {
             std::cout << "Christmas 2019 Constructed!!\n";
             initContextArea(TARGET_FPS::THIRTY);
         }
@@ -82,8 +82,10 @@ class ChristmasApp: public ContextArea {
                     santaHat2_img, 
                     santa_img,
                     merryXMas_img;
-        Stars       stars;                          // Initiated in ChristmasApp Constructor
-        std::vector<Stars>    christmasLights;     // Christmas Lights
+        GDK_IMAGE   bgk_space_img;                  // Background Images
+        GDK_IMAGE   groot_img;
+        Stars       stars, groot_sparkles;          // Initiated in ChristmasApp Constructor
+        std::vector<Stars>    christmasLights;      // Christmas Lights
         std::vector<RainDrop> rain;
 
     private:    // DRAWING FUNCTIONS
@@ -110,6 +112,9 @@ class ChristmasApp: public ContextArea {
             santa_img       = createImageBuffer( rootPath + "resources/Christmas/64/santa.png" );
             merryXMas_img   = createImageBuffer( rootPath + "resources/Christmas/256/Merry-Christmas.png" );
 
+            bgk_space_img   = createImageBuffer( rootPath + "resources/Background/CalmSpace_Bkg.png" );
+            groot_img       = createImageBuffer( rootPath + "resources/Fuzzy/128/Groot.png" );
+
 
             // CONSTRUCT RAIN DROP DATA
             float hs[] = { 13.4f, 17.0f, 15.0f, 14.0f, 17.0f, 13.0f, 19.0f, 12.0f };
@@ -135,7 +140,55 @@ class ChristmasApp: public ContextArea {
             christmasLights[1].setColor({255,    0,      18});
             christmasLights[2].setColor({0,      255,    62});
             christmasLights[3].setColor({0,      179,    44});
+
+
+            // Setup Groot's Sparkles
+            groot_sparkles.setColor({255, 255, 255, 10});
         }
+
+        double fuzzy_theta1 = 0.0;
+        void drawFuzzyState(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
+            // Delta Calculation
+            double dx = cos(fuzzy_theta1);
+            double dy = sin(fuzzy_theta1);
+
+            
+            // DRAW BACKGROUND
+            //  scale Background to Fit
+            //  smooth movement
+            ctx->save();
+            ctx->translate(-200.0f + (dx * 2), dy);
+            ctx->scale( (WIDTH*1.5 + (dx*5)) / bgk_space_img->get_width(), (HEIGHT*1.2 + (dy*7)) / bgk_space_img->get_height() );
+            drawImage(ctx, bgk_space_img);
+            ctx->restore();
+
+
+            // DISPLAY FUZZY TEXT
+            ctx->save();
+            ctx->set_source_rgb(1.0, 1.0, 1.0);
+            ctx->select_font_face("Monospace", Cairo::FontSlant::FONT_SLANT_NORMAL, Cairo::FontWeight::FONT_WEIGHT_NORMAL);
+            ctx->set_font_size(50.0);
+            ctx->translate((WIDTH/2) - 70, HEIGHT/2);
+            ctx->show_text("FUZZY");
+
+
+            // Draw Groot
+            ctx->translate(140.0f, -100.0f);
+            drawImage(ctx, groot_img);
+
+            // Draw Sparkles around Groot only
+            ctx->translate(10.0f, 10.0f);
+            groot_sparkles.update(   groot_img->get_width() - 30.0f, groot_img->get_height());
+            groot_sparkles.draw(ctx, groot_img->get_width() - 30.0f, groot_img->get_height());
+
+            ctx->restore();
+
+
+            // Increment Delta
+            fuzzy_theta1 = (fuzzy_theta1 + 0.01);
+            fuzzy_theta1 = (fuzzy_theta1 > 2*M_PI) ? 0.0 : fuzzy_theta1; 
+        }
+
 
 
         /**
@@ -447,26 +500,29 @@ class ChristmasApp: public ContextArea {
             }
         }
 
-        
-        void draw(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
-            // PICK CORRESPONDING STATE INDEX
-            switch (stateIndex)
-            {
-            case 0:
-                drawTiredState(ctx, WIDTH, HEIGHT);
-                break;
-            case 1:
-                drawSadState(ctx, WIDTH, HEIGHT);
-                break;
 
-            case 2:
-                drawHappyState(ctx, WIDTH, HEIGHT);
-                break;
+        void draw(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
+            drawFuzzyState(ctx, WIDTH, HEIGHT); // DEBUG: Working on new State
+
             
-            default:
-                std::cout << "Something Went Wrong! State: " << stateIndex << '\n';
-                break;
-            }
+            // // PICK CORRESPONDING STATE INDEX
+            // switch (stateIndex)
+            // {
+            // case 0:
+            //     drawTiredState(ctx, WIDTH, HEIGHT);
+            //     break;
+            // case 1:
+            //     drawSadState(ctx, WIDTH, HEIGHT);
+            //     break;
+
+            // case 2:
+            //     drawHappyState(ctx, WIDTH, HEIGHT);
+            //     break;
+            
+            // default:
+            //     std::cout << "Something Went Wrong! State: " << stateIndex << '\n';
+            //     break;
+            // }
         }
 };
 
