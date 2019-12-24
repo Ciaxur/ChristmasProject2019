@@ -7,6 +7,7 @@
 
 // VISUAL OBJECTS
 #include "include/Stars.h"
+#include "include/ShootingStar.h"
 
 // GTK SANDBOX CLASSES
 #include "include/MyWindow.h"
@@ -45,7 +46,9 @@ struct RainDrop {
 
 class ChristmasApp: public ContextArea {
     public:
-        ChristmasApp(): stars(90, 2, 40, 100), groot_sparkles(5, 1, 18, 40) {
+        ChristmasApp(): stars(90, 2, 40, 100), 
+                        groot_sparkles(5, 1, 18, 40),
+                        ss(3.0f, 30) {
             std::cout << "Christmas 2019 Constructed!!\n";
             initContextArea(TARGET_FPS::THIRTY);
         }
@@ -85,6 +88,7 @@ class ChristmasApp: public ContextArea {
         GDK_IMAGE   bgk_space_img;                  // Background Images
         GDK_IMAGE   groot_img;
         Stars       stars, groot_sparkles;          // Initiated in ChristmasApp Constructor
+        ShootingStar ss;
         std::vector<Stars>    christmasLights;      // Christmas Lights
         std::vector<RainDrop> rain;
 
@@ -142,8 +146,12 @@ class ChristmasApp: public ContextArea {
             christmasLights[3].setColor({0,      179,    44});
 
 
-            // Setup Groot's Sparkles
+            // Setup Groot's Sparkles & Shooting Star
             groot_sparkles.setColor({255, 255, 255, 10});
+            ss.setDeltaT(0.02f);
+            ss.setDeltaS(1000.0f, 250.0f);
+            ss.setColor({200, 200, 200, 200});
+            ss.setTailColor({255, 255, 255, 150});
         }
 
         double fuzzy_theta1 = 0.0;
@@ -172,7 +180,7 @@ class ChristmasApp: public ContextArea {
             ctx->show_text("FUZZY");
 
 
-            // Draw Groot
+            // DRAW GROOT
             ctx->translate(140.0f, -100.0f);
             drawImage(ctx, groot_img);
 
@@ -182,6 +190,18 @@ class ChristmasApp: public ContextArea {
             groot_sparkles.draw(ctx, groot_img->get_width() - 30.0f, groot_img->get_height());
 
             ctx->restore();
+
+
+            // DRAW SHOOTING STAR
+            ctx->save();
+            ctx->translate(0, 0);
+            ss.update(WIDTH, HEIGHT);
+            ss.draw(ctx, WIDTH, HEIGHT);
+            ctx->restore();
+            
+            
+
+            
 
 
             // Increment Delta

@@ -14,7 +14,7 @@ GTK_SANDBOX_INCLUDES = $(GTK_SANDBOX_DIR)/lib/*.o -I./$(GTK_SANDBOX_DIR)/src
 
 # OBJECT FILES VARS
 OBJ_DIR = lib
-OBJ_FILES = Stars.cc 
+OBJ_FILES = Stars.cc ShootingStar.cc 
 OBJ_INC = $(patsubst %,../$(SRC_DIR)/%,$(OBJ_FILES))
 
 
