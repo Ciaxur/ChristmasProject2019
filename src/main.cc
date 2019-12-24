@@ -72,12 +72,12 @@ class ChristmasApp: public ContextArea {
 
         // FLIP THROUGHT STATE ON MOUSE CLICK!
         bool onMousePress(GdkEventButton *event) {
-            stateIndex = (stateIndex + 1) % 3;
+            stateIndex = (stateIndex + 1) % 4;
             return true;
         }
 
         
-    private:    // Variables Used
+    private:    // VAIRABLES USED
         GDK_IMAGE   tiredFace_img, z1_img, z3_img;
         GDK_IMAGE   happyFace_img, sunFace_img, sunRims_img;
         GDK_IMAGE   sadFace_img, tear_img;
@@ -86,7 +86,7 @@ class ChristmasApp: public ContextArea {
                     santa_img,
                     merryXMas_img;
         GDK_IMAGE   bgk_space_img;                  // Background Images
-        GDK_IMAGE   groot_img;
+        GDK_IMAGE   groot_img, grootHat_img, bunny_img, bunny2_img;
         Stars       stars, groot_sparkles;          // Initiated in ChristmasApp Constructor
         ShootingStar ss;
         std::vector<Stars>    christmasLights;      // Christmas Lights
@@ -116,8 +116,11 @@ class ChristmasApp: public ContextArea {
             santa_img       = createImageBuffer( rootPath + "resources/Christmas/64/santa.png" );
             merryXMas_img   = createImageBuffer( rootPath + "resources/Christmas/256/Merry-Christmas.png" );
 
-            bgk_space_img   = createImageBuffer( rootPath + "resources/Background/CalmSpace_Bkg.png" );
+            bgk_space_img   = createImageBuffer( rootPath + "resources/Background/480/CalmSpace_Bkg.png" );
             groot_img       = createImageBuffer( rootPath + "resources/Fuzzy/128/Groot.png" );
+            grootHat_img    = createImageBuffer( rootPath + "resources/Christmas/64/vector-hat.png" );
+            bunny_img       = createImageBuffer( rootPath + "resources/Fuzzy/64/BunnyBreathing_Anim/Bunny_State1.png" );
+            bunny2_img       = createImageBuffer( rootPath + "resources/Fuzzy/64/BunnyBreathing_Anim/Bunny_State2.png" );
 
 
             // CONSTRUCT RAIN DROP DATA
@@ -155,6 +158,8 @@ class ChristmasApp: public ContextArea {
         }
 
         double fuzzy_theta1 = 0.0;
+        double z_size = 0.25;
+        bool z_flip = false;
         void drawFuzzyState(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
             // Delta Calculation
             double dx = cos(fuzzy_theta1);
@@ -179,10 +184,32 @@ class ChristmasApp: public ContextArea {
             ctx->translate((WIDTH/2) - 70, HEIGHT/2);
             ctx->show_text("FUZZY");
 
+            // DRAW BUNNY
+            ctx->save();
+            ctx->translate(62.0f, -75.0f);
+            drawImage(ctx, (z_flip) ? bunny_img : bunny2_img);
 
-            // DRAW GROOT
+            // draw zzz's
+            // handle size change
+            ctx->translate(0.0f, 10.0f);
+            if(z_size > 0.25f || z_size <= 0.05f) z_flip = !z_flip;
+            z_size += (z_flip) ? 0.005f : -0.005f;
+            ctx->scale(z_size, z_size);
+
+            drawImage(ctx, z1_img);
+            ctx->restore();
+
+
+            // DRAW GROOT + HAT
             ctx->translate(140.0f, -100.0f);
             drawImage(ctx, groot_img);
+
+            ctx->save();
+            ctx->translate(24.0f, -10.0f);
+            drawImage(ctx, grootHat_img);
+            ctx->restore();
+
+
 
             // Draw Sparkles around Groot only
             ctx->translate(10.0f, 10.0f);
@@ -522,27 +549,28 @@ class ChristmasApp: public ContextArea {
 
 
         void draw(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
-            drawFuzzyState(ctx, WIDTH, HEIGHT); // DEBUG: Working on new State
+            // PICK CORRESPONDING STATE INDEX
+            switch (stateIndex)
+            {
+            case 0:
+                drawTiredState(ctx, WIDTH, HEIGHT);
+                break;
+            case 1:
+                drawSadState(ctx, WIDTH, HEIGHT);
+                break;
 
-            
-            // // PICK CORRESPONDING STATE INDEX
-            // switch (stateIndex)
-            // {
-            // case 0:
-            //     drawTiredState(ctx, WIDTH, HEIGHT);
-            //     break;
-            // case 1:
-            //     drawSadState(ctx, WIDTH, HEIGHT);
-            //     break;
+            case 2:
+                drawHappyState(ctx, WIDTH, HEIGHT);
+                break;
 
-            // case 2:
-            //     drawHappyState(ctx, WIDTH, HEIGHT);
-            //     break;
+            case 3:
+                drawFuzzyState(ctx, WIDTH, HEIGHT);
+                break;
             
-            // default:
-            //     std::cout << "Something Went Wrong! State: " << stateIndex << '\n';
-            //     break;
-            // }
+            default:
+                std::cout << "Something Went Wrong! State: " << stateIndex << '\n';
+                break;
+            }
         }
 };
 
@@ -567,7 +595,7 @@ void watchButton() {
             clicked = true;
 
             // NOTE: Do stuff cause Clicked!
-            stateIndex = (stateIndex + 1) % 3;
+            stateIndex = (stateIndex + 1) % 4;
         }
 
         else if(clicked && !val) {

@@ -124,14 +124,17 @@ void ShootingStar::draw(const CTX_REF& ctx, int WIDTH, int HEIGHT) {
     // Draw Tail
     ctx->set_source_rgba(tailColor.r / 255.0f, tailColor.g / 255.0f, tailColor.b / 255.0f, tailColor.a / 255.0f);
     for (int i=0; i<xs.size(); i++) {
-        ctx->line_to(xs[i], ys[i]);
+        if(xs[i] < WIDTH && ys[i] < HEIGHT)
+            ctx->line_to(xs[i], ys[i]);
     }
     ctx->stroke();
 
     // Draw Star
     if(xs.size()) {
         ctx->set_source_rgba(color1.r / 255.0f, color1.g / 255.0f, color1.b / 255.0f, color1.a / 255.0f);
-        ctx->arc(xs.back(), ys.back(), radius, 0.0f, 2.0f * M_PI);
-        ctx->fill();
+        if(xs.back() < WIDTH && ys.back() < HEIGHT) {
+            ctx->arc(xs.back(), ys.back(), radius, 0.0f, 2.0f * M_PI);
+            ctx->fill();
+        }
     }
 }
