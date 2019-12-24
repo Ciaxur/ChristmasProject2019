@@ -18,12 +18,17 @@ OBJ_FILES = Stars.cc ShootingStar.cc
 OBJ_INC = $(patsubst %,../$(SRC_DIR)/%,$(OBJ_FILES))
 
 
+# ARCHITECTURE MODIFICATIONS
+uname_arch := $(shell uname -a | awk '{print $$(NF - 1)}')
+
+ifneq ($(uname_arch),x86_64)
+	FLAGS += -lwiringPi -lpthread
+endif
+
+
 
 build:
 	$(CC) $(SRC_FILES) ./lib/*.o $(GTK_SANDBOX_INCLUDES) -o $(OUT) $(FLAGS)
-
-build-pi:
-	$(CC) $(SRC_FILES) ./lib/*.o $(GTK_SANDBOX_INCLUDES) -o $(OUT) $(FLAGS) -lwiringPi -lpthread
 
 build-all:
 	make gen-objectFiles
