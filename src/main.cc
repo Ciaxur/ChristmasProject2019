@@ -161,6 +161,11 @@ class ChristmasApp: public ContextArea {
         double z_size = 0.25;
         bool z_flip = false;
         void drawFuzzyState(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
+            // DRAW BACKUP BACKGROUND
+            ctx->set_source_rgb(0.0, 0.0, 0.0);
+            ctx->rectangle(0, 0, WIDTH, HEIGHT);
+            ctx->fill();
+            
             // Delta Calculation
             double dx = cos(fuzzy_theta1);
             double dy = sin(fuzzy_theta1);
