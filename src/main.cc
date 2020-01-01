@@ -5,6 +5,9 @@
 #include <wiringPi.h>
 #endif
 
+// MACROS
+#define STATE_NUM 5;
+
 // VISUAL OBJECTS
 #include "include/Stars.h"
 #include "include/ShootingStar.h"
@@ -72,7 +75,13 @@ class ChristmasApp: public ContextArea {
 
         // FLIP THROUGHT STATE ON MOUSE CLICK!
         bool onMousePress(GdkEventButton *event) {
-            stateIndex = (stateIndex + 1) % 4;
+            stateIndex = (stateIndex + 1) % STATE_NUM;
+
+            // DEBUG: PRINTS
+            double x, y;
+            getMousePosition(x, y);
+            printf("Mouse [%.2f, %.2f]\n", x, y);
+            
             return true;
         }
 
@@ -85,8 +94,10 @@ class ChristmasApp: public ContextArea {
                     santaHat2_img, 
                     santa_img,
                     merryXMas_img;
-        GDK_IMAGE   bgk_space_img;                  // Background Images
+        GDK_IMAGE   bgk_space_img, bkg_space2_img;  // Background Images
         GDK_IMAGE   groot_img, grootHat_img, bunny_img, bunny2_img;
+        GDK_IMAGE   coughingCatFace1_img,           // Funny Images
+                    coughingCatFace2_img;
         Stars       stars, groot_sparkles;          // Initiated in ChristmasApp Constructor
         ShootingStar ss;
         std::vector<Stars>    christmasLights;      // Christmas Lights
@@ -100,27 +111,31 @@ class ChristmasApp: public ContextArea {
                 rootPath = "/home/pi/Downloads/ChristmasProject2019/";
             #endif
 
-            tiredFace_img   = createImageBuffer( rootPath + "resources/Sleep-Emoji/64/FaceOnly.png" );
-            z1_img          = createImageBuffer( rootPath + "resources/Sleep-Emoji/128/Z1.png" );
-            z3_img          = createImageBuffer( rootPath + "resources/Sleep-Emoji/64/Z3.png" );
+            tiredFace_img       = createImageBuffer( rootPath + "resources/Sleep-Emoji/64/FaceOnly.png" );
+            z1_img              = createImageBuffer( rootPath + "resources/Sleep-Emoji/128/Z1.png" );
+            z3_img              = createImageBuffer( rootPath + "resources/Sleep-Emoji/64/Z3.png" );
 
-            happyFace_img   = createImageBuffer( rootPath + "resources/Happy_Emoji/128/Smile_Face.png" );
-            sunFace_img     = createImageBuffer( rootPath + "resources/Sun-Emoji/128/Sun-Face.png" );
-            sunRims_img     = createImageBuffer( rootPath + "resources/Sun-Emoji/128/Sun-Rims.png" );
+            happyFace_img       = createImageBuffer( rootPath + "resources/Happy_Emoji/128/Smile_Face.png" );
+            sunFace_img         = createImageBuffer( rootPath + "resources/Sun-Emoji/128/Sun-Face.png" );
+            sunRims_img         = createImageBuffer( rootPath + "resources/Sun-Emoji/128/Sun-Rims.png" );
 
-            sadFace_img     = createImageBuffer( rootPath + "resources/Sad-Emoji/128/Sad.png" );
-            tear_img        = createImageBuffer( rootPath + "resources/Sad-Emoji/128/Tear.png" );
+            sadFace_img         = createImageBuffer( rootPath + "resources/Sad-Emoji/128/Sad.png" );
+            tear_img            = createImageBuffer( rootPath + "resources/Sad-Emoji/128/Tear.png" );
 
-            santaHat_img    = createImageBuffer( rootPath + "resources/Christmas/64/santa-hat.png" );
-            santaHat2_img   = createImageBuffer( rootPath + "resources/Christmas/128/santa-hat2.png" );
-            santa_img       = createImageBuffer( rootPath + "resources/Christmas/64/santa.png" );
-            merryXMas_img   = createImageBuffer( rootPath + "resources/Christmas/256/Merry-Christmas.png" );
+            santaHat_img        = createImageBuffer( rootPath + "resources/Christmas/64/santa-hat.png" );
+            santaHat2_img       = createImageBuffer( rootPath + "resources/Christmas/128/santa-hat2.png" );
+            santa_img           = createImageBuffer( rootPath + "resources/Christmas/64/santa.png" );
+            merryXMas_img       = createImageBuffer( rootPath + "resources/Christmas/256/Merry-Christmas.png" );
 
-            bgk_space_img   = createImageBuffer( rootPath + "resources/Background/480/CalmSpace_Bkg.png" );
-            groot_img       = createImageBuffer( rootPath + "resources/Fuzzy/128/Groot.png" );
-            grootHat_img    = createImageBuffer( rootPath + "resources/Christmas/64/vector-hat.png" );
-            bunny_img       = createImageBuffer( rootPath + "resources/Fuzzy/64/BunnyBreathing_Anim/Bunny_State1.png" );
-            bunny2_img       = createImageBuffer( rootPath + "resources/Fuzzy/64/BunnyBreathing_Anim/Bunny_State2.png" );
+            bgk_space_img       = createImageBuffer( rootPath + "resources/Background/480/CalmSpace_Bkg.png" );
+            groot_img           = createImageBuffer( rootPath + "resources/Fuzzy/128/Groot.png" );
+            grootHat_img        = createImageBuffer( rootPath + "resources/Christmas/64/vector-hat.png" );
+            bunny_img           = createImageBuffer( rootPath + "resources/Fuzzy/64/BunnyBreathing_Anim/Bunny_State1.png" );
+            bunny2_img          = createImageBuffer( rootPath + "resources/Fuzzy/64/BunnyBreathing_Anim/Bunny_State2.png" );
+
+            coughingCatFace1_img = createImageBuffer( rootPath + "resources/Funny/128/CoughingCat_FaceOnly1.png" );
+            coughingCatFace2_img = createImageBuffer( rootPath + "resources/Funny/128/CoughingCat_FaceOnly2.png" );
+            bkg_space2_img       = createImageBuffer( rootPath + "resources/Funny/900/SpaceBkg.jpeg" );
 
 
             // CONSTRUCT RAIN DROP DATA
@@ -553,6 +568,60 @@ class ChristmasApp: public ContextArea {
         }
 
 
+        // NOTE: Working On :)
+        bool coughFlip = false;
+        double funnyTheta = 0.0f;
+        void drawFunnyState(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
+            // MATHS VARS
+            double cosT = cos(funnyTheta);
+            double sinT = sin(funnyTheta);
+            
+            // DRAW COLOR BACKGROUND
+            ctx->save();
+            ctx->set_source_rgb(0.0f, 0.0f, 0.0f);
+            ctx->rectangle(0.0f, 0.0f, WIDTH, HEIGHT);
+            ctx->fill();
+
+            // DRAW IMAGE BACKGROUND
+            ctx->translate(-20.0f + (cosT * 2), -20.0f + (sinT * 5));
+            drawImage(ctx, bkg_space2_img);
+
+            
+            ctx->fill();
+
+            // FUNNY STATE
+            ctx->save();
+            ctx->set_source_rgb(1.0, 1.0, 1.0);
+            ctx->select_font_face("Monospace", Cairo::FontSlant::FONT_SLANT_NORMAL, Cairo::FontWeight::FONT_WEIGHT_NORMAL);
+            ctx->set_font_size(50.0);
+            ctx->translate((WIDTH/2) - 70, HEIGHT/2);
+            ctx->show_text("FUNNY");
+
+            // DRAW COUGHING FACE!!
+            GDK_IMAGE *f1, *f2;
+            f1 = (coughFlip)  ? &coughingCatFace1_img : &coughingCatFace2_img;
+            f2 = (!coughFlip) ? &coughingCatFace1_img : &coughingCatFace2_img;
+            
+            ctx->translate(-150.0f, -80.0f + (cosT*20));        // LEFT SIDE
+            drawImage(ctx, *f1);
+            ctx->translate(320.0f, 0.0f - (cosT*40));           // RIGHT SIDE
+            drawImage(ctx, *f2);
+
+            ctx->restore();
+
+
+            // MATHS CALCULATIONS
+            // flip-flop cat
+            int interval = ((getFPS() > 0.0f) ? int(getFPS()) : 30) / 4;
+            if(!(frameCount % interval)) coughFlip = !coughFlip;
+
+            // theta shtuff
+            funnyTheta += 0.01;
+            if(funnyTheta >= 2*M_PI) funnyTheta = 0.0f;
+
+            ctx->restore();
+        }
+
         void draw(const CTX_REF& ctx, const int WIDTH, const int HEIGHT) {
             // PICK CORRESPONDING STATE INDEX
             switch (stateIndex)
@@ -570,6 +639,10 @@ class ChristmasApp: public ContextArea {
 
             case 3:
                 drawFuzzyState(ctx, WIDTH, HEIGHT);
+                break;
+
+            case 4:
+                drawFunnyState(ctx, WIDTH, HEIGHT);
                 break;
             
             default:
@@ -600,7 +673,7 @@ void watchButton() {
             clicked = true;
 
             // NOTE: Do stuff cause Clicked!
-            stateIndex = (stateIndex + 1) % 4;
+            stateIndex = (stateIndex + 1) % STATE_NUM;
         }
 
         else if(clicked && !val) {
